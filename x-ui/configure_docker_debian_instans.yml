@@ -18,46 +18,20 @@
         url: 'https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-x86_64'
         dest: /usr/local/bin/docker-compose
         mode: 755
- 
-    - name: Set net.ipv4.conf.all.forwarding in sysctl
+
+    - name: Set sysctl parameters
       sysctl:
-        name: net.ipv4.conf.all.forwarding
-        value: 1
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
         sysctl_set: yes
         state: present
         reload: yes
-
-    - name: Set net.ipv6.conf.all.forwarding in sysctl
-      sysctl:
-        name: net.ipv6.conf.all.forwarding
-        value: 1
-        sysctl_set: yes
-        state: present
-        reload: yes
-
-    - name: Set net.ipv4.ip_forward in sysctl
-      sysctl:
-        name: net.ipv4.ip_forward
-        value: 1
-        sysctl_set: yes
-        state: present
-        reload: yes
-
-    - name: Set net.core.default_qdisc in sysctl
-      sysctl:
-        name: net.core.default_qdisc
-        value: fq
-        sysctl_set: yes
-        state: present
-        reload: yes
-
-#    - name: Set net.ipv4.tcp_congestion_control in sysctl
-#      sysctl:
-#        name: net.ipv4.tcp_congestion_control in sysctl
-#        value: bbr
-#        sysctl_set: yes
-#        state: present
-#        reload: yes
+      loop:
+        - { name: 'net.ipv4.conf.all.forwarding', value: 1 }
+        - { name: 'net.ipv6.conf.all.forwarding', value: 1 }
+        - { name: 'net.ipv4.ip_forward', value: 1 }
+        - { name: 'net.core.default_qdisc', value: 'fq' }
+    #    - { name: 'net.ipv4.tcp_congestion_control', value: 'bbr' }
 
     - name: Create configuration directory if not exists
       ansible.builtin.file:
