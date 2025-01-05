@@ -54,19 +54,12 @@
         state: present
         reload: yes
 
-
     - name: Generate SSL certificate using Certbot
       ansible.builtin.command:
         cmd: >
           certbot certonly --dry-run --standalone --noninteractive --agree-tos --email {{ email }} --domain {{ domain_name }}
       args:
         creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
-
-    - name: Ensure required packages are installed
-      ansible.builtin.package:
-        name:
-          - ocserv
-        state: present
 
     - name: Create configuration directory if not exists
       ansible.builtin.file:
