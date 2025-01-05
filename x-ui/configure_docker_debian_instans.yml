@@ -1,0 +1,137 @@
+---
+- name: Configure OpenConnect Server (ocserv)
+  hosts: all
+  become: true
+  vars_files:
+    - vars.yml
+
+  tasks:
+
+    - name: install docker compose for source-code
+      get_url:
+        url: 'https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-x86_64'
+        dest: /usr/local/bin/docker-compose
+        mode: 755
+ 
+    - name: Set net.ipv4.conf.all.forwarding in sysctl
+      sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Set net.ipv6.conf.all.forwarding in sysctl
+      sysctl:
+        name: net.ipv6.conf.all.forwarding
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Set net.ipv4.ip_forward in sysctl
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Set net.core.default_qdisc in sysctl
+      sysctl:
+        name: net.core.default_qdisc
+        value: fq
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+#    - name: Set net.ipv4.tcp_congestion_control in sysctl
+#      sysctl:
+#        name: net.ipv4.tcp_congestion_control in sysctl
+#        value: bbr
+#        sysctl_set: yes
+#        state: present
+#        reload: yes
+
+    - name: Create configuration directory if not exists
+      ansible.builtin.file:
+        path: /usr/local/docker/x-ui
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: fetch docker apt key
+      shell: curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+
+    - name: Add docker repository
+      shell: add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+
+    - name: Refresh cache
+      apt:
+        update_cache: yes
+
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name:
+          - bash-completion
+          - neovim
+          - git
+          - gnupg-agent
+          - software-properties-common
+          - haveged
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - tree
+        state: present
+
+    - name: enable and aviable kernel modules for docker host
+      shell: modprobe -a br_netfilter ip_tables nf_conntrack_netlink nf_nat overlay xt_conntrack
+
+
+    - name: Ensure docker service is enabled and started
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: copy docker-compose.yml file to /usr/local/docker/x-ui
+      ansible.builtin.template:
+        src: templates/docker-compose.yml.j2
+        dest: /usr/local/docker/x-ui/docker-compose.yml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: copy .env file to /usr/local/docker/x-ui
+      ansible.builtin.template:
+        src: templates/env.j2
+        dest: /usr/local/docker/x-ui/.env
+        owner: root
+        group: root
+        mode: '0644'
+
+
+    - name: copy traefik.yml file to /usr/local/docker/x-ui
+      ansible.builtin.template:
+        src: templates/traefik.yml.j2
+        dest: /usr/local/docker/x-ui/traefik.yml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Docker Pull
+      command: "docker-compose pull"
+      args:
+        chdir: /usr/local/docker/x-ui/
+
+    - name: starting docker containers in docker-compose.yml
+      command: "docker-compose up -d"
+      args:
+        chdir: /usr/local/docker/x-ui/
+
+
+
+
+

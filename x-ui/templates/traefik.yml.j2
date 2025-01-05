@@ -1,0 +1,51 @@
+api:
+  dashboard: true
+  insecure: false
+
+certificatesresolvers:
+  letsencrypt:
+    acme:
+      email: {{ email }}
+      storage: "/letsencrypt/acme.json"
+      tlschallenge: true
+
+entrypoints:
+  http:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          scheme: "https"
+          to: "https"
+  https:
+    address: ":443"
+    http:
+      tls:
+        certResolver: "letsencrypt"
+
+providers:
+  docker:
+   endpoint: "unix:///var/run/docker.sock"
+   exposedByDefault: false
+   network: proxy
+
+http:
+  routers:
+    dashboard:
+      entrypoints: "https"
+      rule: "Host(`{{ proxy_dashboard_domain }}`)"
+      service: "api@internal"
+log:
+  format: json
+  filePath: "/log/traefik.log"
+
+
+accessLog:
+  filePath: "/log/access.log"
+  format: json
+  filters:
+    statusCodes:
+      - "200"
+      - "300-302"
+    retryAttempts: true
+    minDuration: "10000ms"
