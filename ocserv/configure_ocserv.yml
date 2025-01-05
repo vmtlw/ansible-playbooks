@@ -4,12 +4,12 @@
   become: true
   vars_files:
     - vars.yml
- 
+
   tasks:
 
     - name: Ensure required packages are installed
       ansible.builtin.package:
-        name: 
+        name:
           - certbot
           - ocserv
         state: present
@@ -21,7 +21,7 @@
         sysctl_set: yes
         state: present
         reload: yes
-  
+
     - name: Set net.ipv6.conf.all.forwarding in sysctl
       sysctl:
         name: net.ipv6.conf.all.forwarding
@@ -48,13 +48,13 @@
 
     - name: Set net.ipv4.tcp_congestion_control in sysctl
       sysctl:
-	name: net.ipv4.tcp_congestion_control
+        name: net.ipv4.tcp_congestion_control in sysctl
         value: bbr
         sysctl_set: yes
         state: present
         reload: yes
 
-    
+
     - name: Generate SSL certificate using Certbot
       ansible.builtin.command:
         cmd: >
@@ -64,7 +64,7 @@
 
     - name: Ensure required packages are installed
       ansible.builtin.package:
-        name: 
+        name:
           - ocserv
         state: present
 
