@@ -11,7 +11,32 @@
       ansible.builtin.package:
         name: 
           - certbot
+          - ocserv
         state: present
+
+    - name: Set net.ipv4.conf.all.forwarding in sysctl
+      sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+  
+    - name: Set net.ipv6.conf.all.forwarding in sysctl
+      sysctl:
+        name: net.ipv6.conf.all.forwarding
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Set net.ipv4.ip_forward in sysctl
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+        state: present
+        reload: yes
 
     - name: Set net.core.default_qdisc in sysctl
       sysctl:
@@ -20,7 +45,7 @@
         sysctl_set: yes
         state: present
         reload: yes
-  
+
     - name: Set net.ipv4.tcp_congestion_control in sysctl
       sysctl:
 	name: net.ipv4.tcp_congestion_control
