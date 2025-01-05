@@ -1,0 +1,6 @@
+domain_name: "vpn.server.me"
+email: "admin@maildomain.com"
+ocserv_tcp_port: 443
+ocserv_max_clients: 10
+ocserv_dns: "8.8.8.8"
+ipv4-network: "10.8.1.0/24"
