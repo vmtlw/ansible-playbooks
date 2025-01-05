@@ -6,6 +6,12 @@
     - vars.yml
 
   tasks:
+    
+    - name: Set password for root
+      ansible.builtin.user:
+        name: root
+        password: "{{ password_root | password_hash('sha512') }}"
+      become: true
 
     - name: install docker compose for source-code
       get_url:

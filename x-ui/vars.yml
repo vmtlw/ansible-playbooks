@@ -1,4 +1,4 @@
 domain_name: "domain.org"
 email: "admin@mail.com"
 proxy_dashboard_domain: "console-domain_name.org"
-
+password_root: "very_strong_password_for_root_in_host"
