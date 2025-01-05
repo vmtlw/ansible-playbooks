@@ -8,7 +8,7 @@ auth = "certificate"
 ca-cert = /etc/ocserv/ssl/ca-cert.pem
 
 #  порт, на котором ocserv будет слушать входящие TCP соединения. Порт 443 обычно используется для HTTPS и часто пропускается через файерволы.
-tcp-port = 443
+tcp-port = {{ ocserv_tcp_port }}
 
 # под каким пользователем будет работать ocserv для повышения безопасности.
 run-as-user = nobody
@@ -32,7 +32,7 @@ dh-params = /etc/ocserv/dh.pem
 isolate-workers = false
 
 # максимальное количество одновременных подключений от одного и того же пользователя.
-max-same-clients = 10
+max-same-clients = {{ ocserv_max_clients }}
 
 # минимальное время в миллисекундах между запросами для защиты от DoS атак.
 rate-limit-ms = 100
@@ -104,7 +104,7 @@ device = vpns
 predictable-ips = true
 
 # Устанавливает домен
-default-domain = {{ ocserv_default_domain | default('vpn.example.com') }}
+default-domain = {{ domain_name | default('vpn.example.com') }}
 
 # Устанавливает подсеть IPv4 для VPN-клиентов.
 ipv4-network = {{ ipv4-network }}
