@@ -85,7 +85,7 @@
         mode: '0644'
 
     - name: Ensure ocserv service is enabled and started
-      ansible.builtin.systemd:
+      ansible.builtin.service:
         name: ocserv
         enabled: true
         state: started
