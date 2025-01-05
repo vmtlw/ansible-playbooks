@@ -1,5 +1,5 @@
 ---
-- name: Configure OpenConnect Server (ocserv)
+- name: Configure Xray server in docker 
   hosts: all
   become: true
   vars_files:
