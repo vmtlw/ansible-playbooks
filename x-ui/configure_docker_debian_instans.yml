@@ -90,52 +90,27 @@
         - { src: 'templates/env.j2', dest: '/usr/local/docker/x-ui/.env' }
         - { src: 'templates/traefik.yml.j2', dest: '/usr/local/docker/x-ui/traefik.yml' }
 
-    - name: Pull Docker images using docker-compose
-      community.docker.docker_compose:
-        project_src: /usr/local/docker/x-ui
-        pull: yes
+    #- name: Pull Docker images using docker-compose
+    #  community.docker.docker_compose:
+    #    project_src: /usr/local/docker/x-ui
+    #    pull: yes
   
-    - name: Start Docker containers in detached mode using docker-compose
-      community.docker.docker_compose:
-        project_src: /usr/local/docker/x-ui
-        state: present
-        detached: yes
-
-    - name: deleting old ufw rules
-      ufw:
-        state: reset
+    #- name: Start Docker containers in detached mode using docker-compose
+    #  community.docker.docker_compose:
+    #    project_src: /usr/local/docker/x-ui
+    #    state: present
+    #    detached: yes
 
     - name: opening 54320, 54327, 54328, 80, 443
       ufw:
         rule: allow
-        name: "{{ item }}"
+        port: "{{ item }}"
+        default: "deny"
+        state: enabled
       loop:
         - 54320
         - 54327
         - 54328
         - 80
         - 443
-
-    - name: closing all other ports
-      ufw:
-        rule: deny
-        name: "{{ item }}"
-      loop:
-        - all
-
-    - name: closig ICMP (ping)
-      ufw:
-        rule: deny
-        proto: icmp
-
-    - name: enabling ufw
-      ufw:
-        state: enabled
-
-    - name: checking status ufw
-      ufw:
-        state: status
-
-
-
-
+        - 22
