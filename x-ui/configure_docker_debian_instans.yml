@@ -40,16 +40,16 @@
         owner: root
         group: root
         mode: '0755'
-
-    - name: fetch docker apt key
-      shell: curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+    
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
 
     - name: Add docker repository
-      shell: add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-
-    - name: Refresh cache
-      apt:
-        update_cache: yes
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
+        state: present
 
     - name: Ensure required packages are installed
       ansible.builtin.package:
@@ -67,6 +67,7 @@
           - whois
           - ufw
         state: present
+        update_cache: true
 
     - name: enable and aviable kernel modules for docker host
       community.general.modprobe:
