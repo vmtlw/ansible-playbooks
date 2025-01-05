@@ -64,6 +64,7 @@
           - docker-ce-cli
           - containerd.io
           - tree
+          - whois
         state: present
 
     - name: enable and aviable kernel modules for docker host
@@ -76,41 +77,28 @@
         enabled: true
         state: started
 
-    - name: copy docker-compose.yml file to /usr/local/docker/x-ui
+    - name: Copy configuration files to /usr/local/docker/x-ui
       ansible.builtin.template:
-        src: templates/docker-compose.yml.j2
-        dest: /usr/local/docker/x-ui/docker-compose.yml
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
         owner: root
         group: root
         mode: '0644'
+      loop:
+        - { src: 'templates/docker-compose.yml.j2', dest: '/usr/local/docker/x-ui/docker-compose.yml' }
+        - { src: 'templates/env.j2', dest: '/usr/local/docker/x-ui/.env' }
+        - { src: 'templates/traefik.yml.j2', dest: '/usr/local/docker/x-ui/traefik.yml' }
 
-    - name: copy .env file to /usr/local/docker/x-ui
-      ansible.builtin.template:
-        src: templates/env.j2
-        dest: /usr/local/docker/x-ui/.env
-        owner: root
-        group: root
-        mode: '0644'
-
-
-    - name: copy traefik.yml file to /usr/local/docker/x-ui
-      ansible.builtin.template:
-        src: templates/traefik.yml.j2
-        dest: /usr/local/docker/x-ui/traefik.yml
-        owner: root
-        group: root
-        mode: '0644'
-
-    - name: Docker Pull
-      command: "docker-compose pull"
-      args:
-        chdir: /usr/local/docker/x-ui/
-
-    - name: starting docker containers in docker-compose.yml
-      command: "docker-compose up -d"
-      args:
-        chdir: /usr/local/docker/x-ui/
-
+    - name: Pull Docker images using docker-compose
+      community.docker.docker_compose:
+        project_src: /usr/local/docker/x-ui
+        pull: yes
+  
+    - name: Start Docker containers in detached mode using docker-compose
+      community.docker.docker_compose:
+        project_src: /usr/local/docker/x-ui
+        state: present
+        detached: yes
 
 
 
