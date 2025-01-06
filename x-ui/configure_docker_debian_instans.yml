@@ -75,11 +75,6 @@
         - "overlay"
         - "xt_conntrack"
   
-    - name: Ensure docker service is enabled and started
-      ansible.builtin.service:
-        name: docker
-        enabled: true
-        state: started
 
     - name: Copy configuration files to /usr/local/docker/x-ui
       ansible.builtin.template:
@@ -92,13 +87,6 @@
         - { src: 'templates/docker-compose.yml.j2', dest: '/usr/local/docker/x-ui/docker-compose.yml' }
         - { src: 'templates/env.j2', dest: '/usr/local/docker/x-ui/.env' }
         - { src: 'templates/traefik.yml.j2', dest: '/usr/local/docker/x-ui/traefik.yml' }
-    
-    # required install to ansible host dev-python/docker
-    - name: Start Docker containers
-      community.docker.docker_compose_v2:
-        project_src: /usr/local/docker/x-ui
-        state: present
-        recreate: auto
      
     - name: Uncomment history-search-backward lines with pgup/pgdown in /etc/inputrc
       template:
@@ -106,8 +94,7 @@
         dest: /etc/inputrc
       when: ansible_distribution_major_version | int < 12
 
-    - name: configuring iptables
-      block:  
+    - block:  
       - name: Set Polycy
         ansible.builtin.iptables:
           chain: "{{ item }}"
@@ -125,7 +112,7 @@
           chain: "{{ item }}"
           flush: yes
           table: nat
-        with_items: [ "INPUT", "OUTPUT", "PREROUTING", "POSTROUTING"]
+        with_items: [ "INPUT", "OUTPUT", "PREROUTING", "POSTROUTING" ]
        
       - name: Allow related and established connections
         ansible.builtin.iptables:
@@ -157,3 +144,19 @@
           chain: INPUT
           jump: DROP
      
+      
+    - name: Ensure docker service is enabled and started
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: down existing services
+      community.docker.docker_compose_v2:
+        project_src: /usr/local/docker/x-ui
+        state: absent
+
+    - name: Start Docker containers
+      community.docker.docker_compose_v2:
+        project_src: /usr/local/docker/x-ui
+        state: started
