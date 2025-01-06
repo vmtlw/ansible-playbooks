@@ -14,18 +14,6 @@
       become: true
       changed_when: false
 
-    #- name: Get the latest version of Docker Compose
-    #  shell: |
-    #    curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4
-    #  register: compose_version
-    #  changed_when: false
-
-    #- name: install docker compose for source-code
-    #  get_url:
-    #    url: 'https://github.com/docker/compose/releases/download/{{ compose_version.stdout }}/docker-compose-linux-x86_64'
-    #    dest: /usr/local/bin/docker-compose
-    #    mode: 755
-
     - name: Set sysctl parameters
       sysctl:
         name: "{{ item.name }}"
@@ -119,7 +107,7 @@
       when: ansible_distribution_major_version | int < 12
 
     - name: configuring iptables
-    - bloks:  
+      block:  
       - name: Set Polycy
         ansible.builtin.iptables:
           chain: "{{ item }}"
@@ -127,7 +115,7 @@
         with_items: ["INPUT", "FORWARD", "OUTPUT"]
 
       - name: Flush all
-        iptables:
+        ansible.builtin.iptables:
           chain: "{{ item }}"
           flush: yes
         with_items: ["INPUT", "FORWARD", "OUTPUT"]
@@ -137,7 +125,7 @@
           chain: "{{ item }}"
           flush: yes
           table: nat
-        with_items: ["INPUT", "FORWARD", "OUTPUT"]
+        with_items: [ "INPUT", "OUTPUT", "PREROUTING", "POSTROUTING"]
        
       - name: Allow related and established connections
         ansible.builtin.iptables:
@@ -146,29 +134,26 @@
           jump: ACCEPT
 
       - name: deny PING
-        iptables:
+        ansible.builtin.iptables:
           chain: INPUT
           protocol: icmp
           jump: DROP
           
       - name: allow 22, 80, 443, 54320, 54327, 54328 ports
-        iptables:
+        ansible.builtin.iptables:
           chain: INPUT
           protocol: tcp
-          destination_port: "{{ item }}"
+          destination_ports:
+           - "22"
+           - "80"
+           - "443"
+           - "54320"
+           - "54327"
+           - "54328"
           jump: ACCEPT
-          comment: Allow SSH
-        loop:
-          - 22
-          - 80
-          - 443
-          - 54320
-          - 54327
-          - 54328
 
       - name: Drop others input
-        iptables:
+        ansible.builtin.iptables:
           chain: INPUT
           jump: DROP
-          comment: Drop all
      
