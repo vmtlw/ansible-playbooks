@@ -1,0 +1,35 @@
+---
+- name: Configure zram 
+  hosts: all
+  become: true
+  vars_files:
+    - vars.yml
+
+  tasks:
+
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name:
+          - zram-tools
+          - zstd
+        state: present
+        update_cache: true
+
+    - name: enable and aviable kernel modules for zram
+      community.general.modprobe:
+        name: "zram"
+        persistent: "present"
+        state: "present"
+  
+    - name: create zram config (/etc/default/zramswap)
+      ansible.builtin.copy:
+        dest: /etc/default/zramswap
+        content: |
+          ALGO=zstd
+          PERCENT=200
+    
+    - name: reload permanently zramswap
+      ansible.builtin.service:
+        name: zramswap
+        enabled: true
+        state: reloaded
