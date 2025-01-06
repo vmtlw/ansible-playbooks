@@ -55,7 +55,7 @@
 
     - name: Add docker repository
       apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_os_family | lower }}/ "{{ ansible_distribution_release }}" stable
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_os_family | lower }} {{ ansible_distribution_release }} stable"
         state: present
 
     - name: Ensure required packages are installed
@@ -112,6 +112,7 @@
       community.docker.docker_compose_v2:
         project_src: /usr/local/docker/x-ui
         state: present
+        recreate: true
 
     - name: opening 54320, 54327, 54328, 80, 443
       ufw:
