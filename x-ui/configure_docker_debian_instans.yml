@@ -159,4 +159,4 @@
     - name: Start Docker containers
       community.docker.docker_compose_v2:
         project_src: /usr/local/docker/x-ui
-        state: started
+        state: present
