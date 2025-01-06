@@ -1,0 +1,9 @@
+ungrouped:
+  hosts: 
+    "{{ domain_name }}":
+      ansible_user: "root"
+      ansible_ssh_pipelining: true
+      ansible_ssh_args: "-o ControlMaster=auto -o ControlPersist=15m"
+      ansible_ssh_transfer_method: "piped"
+      ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
+
