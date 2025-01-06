@@ -1,5 +1,5 @@
 ---
-- name: Configure Xray server in docker 
+- name: Configure Xray server in docker ( all-in-one )
   hosts: all
   become: true
   vars_files:
@@ -38,7 +38,8 @@
         - { name: 'net.ipv6.conf.all.forwarding', value: 1 }
         - { name: 'net.ipv4.ip_forward', value: 1 }
         - { name: 'net.core.default_qdisc', value: 'fq' }
-    #    - { name: 'net.ipv4.tcp_congestion_control', value: 'bbr' }
+        # only for linux kernel  6.0 =<
+        - { name: 'net.ipv4.tcp_congestion_control', value: 'bbr' }
 
     - name: Create configuration directory if not exists
       ansible.builtin.file:
@@ -68,7 +69,6 @@
           - software-properties-common
           - tree
           - whois
-          - ufw
           - docker
           - docker-compose-plugin
         state: present
@@ -111,23 +111,64 @@
         project_src: /usr/local/docker/x-ui
         state: present
         recreate: auto
-
-    - name: opening 54320, 54327, 54328, 80, 443
-      ufw:
-        rule: allow
-        port: "{{ item }}"
-        default: "deny"
-        state: enabled
-      loop:
-        - 54320
-        - 54327
-        - 54328
-        - 80
-        - 443
-        - 22
-
+     
     - name: Uncomment history-search-backward lines with pgup/pgdown in /etc/inputrc
       template:
         src: templates/inputrc.j2
         dest: /etc/inputrc
       when: ansible_distribution_major_version | int < 12
+
+    - name: configuring iptables
+    - bloks:  
+      - name: Set Polycy
+        ansible.builtin.iptables:
+          chain: "{{ item }}"
+          policy: ACCEPT
+        with_items: ["INPUT", "FORWARD", "OUTPUT"]
+
+      - name: Flush all
+        iptables:
+          chain: "{{ item }}"
+          flush: yes
+        with_items: ["INPUT", "FORWARD", "OUTPUT"]
+
+      - name: Flush nat
+        ansible.builtin.iptables:
+          chain: "{{ item }}"
+          flush: yes
+          table: nat
+        with_items: ["INPUT", "FORWARD", "OUTPUT"]
+       
+      - name: Allow related and established connections
+        ansible.builtin.iptables:
+          chain: INPUT
+          ctstate: ESTABLISHED,RELATED
+          jump: ACCEPT
+
+      - name: deny PING
+        iptables:
+          chain: INPUT
+          protocol: icmp
+          jump: DROP
+          
+      - name: allow 22, 80, 443, 54320, 54327, 54328 ports
+        iptables:
+          chain: INPUT
+          protocol: tcp
+          destination_port: "{{ item }}"
+          jump: ACCEPT
+          comment: Allow SSH
+        loop:
+          - 22
+          - 80
+          - 443
+          - 54320
+          - 54327
+          - 54328
+
+      - name: Drop others input
+        iptables:
+          chain: INPUT
+          jump: DROP
+          comment: Drop all
+     
