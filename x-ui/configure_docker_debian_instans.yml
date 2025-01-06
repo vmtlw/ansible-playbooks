@@ -125,3 +125,9 @@
         - 80
         - 443
         - 22
+
+    - name: Uncomment history-search-backward lines with pgup/pgdown in /etc/inputrc
+      template:
+        src: templates/inputrc.j2
+        dest: /etc/inputrc
+      when: ansible_distribution_major_version | int < 12
