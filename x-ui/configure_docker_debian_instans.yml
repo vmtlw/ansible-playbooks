@@ -13,9 +13,16 @@
         password: "{{ password_root | password_hash('sha512') }}"
       become: true
 
+
+    - name: Get the latest version of Docker Compose
+      shell: |
+        curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4
+      register: compose_version
+      changed_when: false
+
     - name: install docker compose for source-code
       get_url:
-        url: 'https://github.com/docker/compose/releases/download/v2.32.1/docker-compose-linux-x86_64'
+        url: 'https://github.com/docker/compose/releases/download/{{ compose_version.stdout }}/docker-compose-linux-x86_64'
         dest: /usr/local/bin/docker-compose
         mode: 755
 
