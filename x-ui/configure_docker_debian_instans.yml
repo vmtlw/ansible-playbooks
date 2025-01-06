@@ -100,17 +100,11 @@
         - { src: 'templates/docker-compose.yml.j2', dest: '/usr/local/docker/x-ui/docker-compose.yml' }
         - { src: 'templates/env.j2', dest: '/usr/local/docker/x-ui/.env' }
         - { src: 'templates/traefik.yml.j2', dest: '/usr/local/docker/x-ui/traefik.yml' }
-
-    #- name: Pull Docker images using docker-compose
-    #  community.docker.docker_compose:
-    #    project_src: /usr/local/docker/x-ui
-    #    pull: yes
-  
-    #- name: Start Docker containers in detached mode using docker-compose
-    #  community.docker.docker_compose:
-    #    project_src: /usr/local/docker/x-ui
-    #    state: present
-    #    detached: yes
+# required install to ansible host dev-python/docker
+    - name: Start Docker containers
+      community.docker.docker_compose_v2:
+        project_src: /usr/local/docker/x-ui
+        state: present
 
     - name: opening 54320, 54327, 54328, 80, 443
       ufw:
