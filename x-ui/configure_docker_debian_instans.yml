@@ -50,12 +50,12 @@
     
     - name: Add Docker GPG apt Key
       apt_key:
-        url: https://download.docker.com/linux/debian/gpg
+        url: https://download.docker.com/linux/{{ ansible_os_family | lower }}/gpg
         state: present
 
     - name: Add docker repository
       apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable"
+        repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_os_family | lower }}/ "{{ ansible_distribution_release }}" stable
         state: present
 
     - name: Ensure required packages are installed
