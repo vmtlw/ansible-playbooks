@@ -66,13 +66,11 @@
           - git
           - gnupg-agent
           - software-properties-common
-          - haveged
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
           - tree
           - whois
           - ufw
+          - docker
+          - docker-compose-plugin
         state: present
         update_cache: true
 
@@ -112,7 +110,7 @@
       community.docker.docker_compose_v2:
         project_src: /usr/local/docker/x-ui
         state: present
-        recreate: true
+        recreate: auto
 
     - name: opening 54320, 54327, 54328, 80, 443
       ufw:
