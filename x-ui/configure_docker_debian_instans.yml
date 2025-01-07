@@ -125,6 +125,19 @@
           chain: INPUT
           protocol: icmp
           jump: DROP
+
+      - name: Set tcp flags
+        ansible.builtin.iptables:
+          chain: OUTPUT
+          jump: DROP
+          protocol: tcp
+          tcp_flags:
+            flags: ALL
+            flags_set:
+              - ACK
+              - RST
+              - SYN
+              - FIN
           
       - name: allow 22, 80, 443, 54320, 54327, 54328 ports
         ansible.builtin.iptables:
