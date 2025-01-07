@@ -10,7 +10,7 @@
     - name: Set password for root
       ansible.builtin.user:
         name: root
-        password: '{{ password_root | password_hash('sha512') }}'
+        password: "{{ password_root | password_hash('sha512') }}"
       become: true
       changed_when: false
 
@@ -43,19 +43,19 @@
         - 'xt_conntrack'
 
     - block:  
-      - name: Set Polycy
+      - name: Set Default Polycy
         ansible.builtin.iptables:
           chain: '{{ item }}'
           policy: ACCEPT
         with_items: ['INPUT', 'FORWARD', 'OUTPUT']
 
-      - name: Flush all
+      - name: Flush INPUT FORWARD OUTPUT
         ansible.builtin.iptables:
           chain: '{{ item }}'
           flush: yes
         with_items: ['INPUT', 'FORWARD', 'OUTPUT']
 
-      - name: Flush nat
+      - name: Flush nat INPUT OUTPUT PREROUTING POSTROUTING
         ansible.builtin.iptables:
           chain: '{{ item }}'
           flush: yes
@@ -100,10 +100,29 @@
            - '54328'
           jump: ACCEPT
 
+      - name: Allow forwarding for docker networks (br-*)
+        ansible.builtin.iptables:
+          chain: forward
+          in_interface: "{{ ansible_default_ipv4.interface }}"
+          out_interface: br-+
+          jump: accept
+
+
       - name: Drop others input
         ansible.builtin.iptables:
           chain: INPUT
           jump: DROP
+
+      - name: Save current state of the firewall in system file for ipv4
+        community.general.iptables_state:
+          state: saved
+          path: /etc/iptables/rules.v4
+
+      - name: Save current state of the firewall in system file for ipv6
+        community.general.iptables_state:
+          ip_version: ipv6
+          state: saved
+          path: /etc/iptables/rules.v6
       
     - name: Add Docker GPG apt Key
       apt_key:
@@ -194,13 +213,3 @@
         project_src: /usr/local/docker/x-ui
         state: present
 
-    - name: Save current state of the firewall in system file for ipv4
-      community.general.iptables_state:
-        state: saved
-        path: /etc/iptables/rules.v4
-
-    - name: Save current state of the firewall in system file for ipv6
-      community.general.iptables_state:
-        ip_version: ipv6
-        state: saved
-        path: /etc/iptables/rules.v6
