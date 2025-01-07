@@ -29,40 +29,6 @@
         # only for linux kernel  6.0 =<
         - { name: 'net.ipv4.tcp_congestion_control', value: 'bbr' }
 
-    - name: Create configuration directory if not exists
-      ansible.builtin.file:
-        path: /usr/local/docker/x-ui
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
-    
-    - name: Add Docker GPG apt Key
-      apt_key:
-        url: https://download.docker.com/linux/{{ ansible_os_family | lower }}/gpg
-        state: present
-
-    - name: Add docker repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_os_family | lower }} {{ ansible_distribution_release }} stable"
-        state: present
-
-    - name: Ensure required packages are installed
-      ansible.builtin.package:
-        name:
-          - bash-completion
-          - neovim
-          - git
-          - gnupg-agent
-          - software-properties-common
-          - tree
-          - whois
-          - docker
-          - docker-compose-plugin
-          - iptables-persistent
-        state: present
-        update_cache: true
-
     - name: enable and aviable kernel modules for docker host
       community.general.modprobe:
         name: "{{ item }}"
@@ -75,25 +41,6 @@
         - "nf_nat"
         - "overlay"
         - "xt_conntrack"
-  
-
-    - name: Copy configuration files to /usr/local/docker/x-ui
-      ansible.builtin.template:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-        owner: root
-        group: root
-        mode: '0644'
-      loop:
-        - { src: 'templates/docker-compose.yml.j2', dest: '/usr/local/docker/x-ui/docker-compose.yml' }
-        - { src: 'templates/env.j2', dest: '/usr/local/docker/x-ui/.env' }
-        - { src: 'templates/traefik.yml.j2', dest: '/usr/local/docker/x-ui/traefik.yml' }
-     
-    - name: Uncomment history-search-backward lines with pgup/pgdown in /etc/inputrc
-      template:
-        src: templates/inputrc.j2
-        dest: /etc/inputrc
-      when: ansible_distribution_major_version | int < 12
 
     - block:  
       - name: Set Polycy
@@ -157,15 +104,68 @@
         ansible.builtin.iptables:
           chain: INPUT
           jump: DROP
-     
       
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/{{ ansible_os_family | lower }}/gpg
+        state: present
+
+    - name: Add docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_os_family | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name:
+          - bash-completion
+          - neovim
+          - git
+          - gnupg-agent
+          - software-properties-common
+          - tree
+          - whois
+          - docker
+          - docker-compose-plugin
+          - iptables-persistent
+          - zram-tools
+          - zstd
+        state: present
+        update_cache: true
+
+    - name: Create configuration directory if not exists
+      ansible.builtin.file:
+        path: /usr/local/docker/x-ui
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy configuration files to /usr/local/docker/x-ui
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - { src: 'templates/docker-compose.yml.j2', dest: '/usr/local/docker/x-ui/docker-compose.yml' }
+        - { src: 'templates/env.j2', dest: '/usr/local/docker/x-ui/.env' }
+        - { src: 'templates/traefik.yml.j2', dest: '/usr/local/docker/x-ui/traefik.yml' }
+     
+    - name: Uncomment history-search-backward lines with pgup/pgdown in /etc/inputrc
+      template:
+        src: templates/inputrc.j2
+        dest: /etc/inputrc
+      when: ansible_distribution_major_version | int < 12
+
     - name: Ensure docker service is enabled and started
       ansible.builtin.service:
         name: docker
         enabled: true
         state: started
 
-    - name: down existing services
+    - name: simular docker compose down in /usr/local/docker/x-ui
       community.docker.docker_compose_v2:
         project_src: /usr/local/docker/x-ui
         state: absent
@@ -180,8 +180,8 @@
         state: saved
         path: /etc/iptables/rules.v4
 
-
     - name: Save current state of the firewall in system file for ipv6
       community.general.iptables_state:
+        ip_version: ipv6
         state: saved
         path: /etc/iptables/rules.v6
