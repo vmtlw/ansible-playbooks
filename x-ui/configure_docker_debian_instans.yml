@@ -59,6 +59,7 @@
           - whois
           - docker
           - docker-compose-plugin
+          - iptables-persistent
         state: present
         update_cache: true
 
@@ -173,3 +174,14 @@
       community.docker.docker_compose_v2:
         project_src: /usr/local/docker/x-ui
         state: present
+
+    - name: Save current state of the firewall in system file for ipv4
+      community.general.iptables_state:
+        state: saved
+        path: /etc/iptables/rules.v4
+
+
+    - name: Save current state of the firewall in system file for ipv6
+      community.general.iptables_state:
+        state: saved
+        path: /etc/iptables/rules.v6
