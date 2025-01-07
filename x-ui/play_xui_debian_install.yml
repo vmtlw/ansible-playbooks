@@ -10,14 +10,14 @@
     - name: Set password for root
       ansible.builtin.user:
         name: root
-        password: "{{ password_root | password_hash('sha512') }}"
+        password: '{{ password_root | password_hash('sha512') }}'
       become: true
       changed_when: false
 
     - name: Set sysctl parameters
       sysctl:
-        name: "{{ item.name }}"
-        value: "{{ item.value }}"
+        name: '{{ item.name }}'
+        value: '{{ item.value }}'
         sysctl_set: yes
         state: present
         reload: yes
@@ -31,36 +31,36 @@
 
     - name: enable and aviable kernel modules for docker host
       community.general.modprobe:
-        name: "{{ item }}"
-        persistent: "present"
-        state: "present"
+        name: '{{ item }}'
+        persistent: 'present'
+        state: 'present'
       loop:
-        - "br_netfilter"
-        - "ip_tables"
-        - "nf_conntrack_netlink"
-        - "nf_nat"
-        - "overlay"
-        - "xt_conntrack"
+        - 'br_netfilter'
+        - 'ip_tables'
+        - 'nf_conntrack_netlink'
+        - 'nf_nat'
+        - 'overlay'
+        - 'xt_conntrack'
 
     - block:  
       - name: Set Polycy
         ansible.builtin.iptables:
-          chain: "{{ item }}"
+          chain: '{{ item }}'
           policy: ACCEPT
-        with_items: ["INPUT", "FORWARD", "OUTPUT"]
+        with_items: ['INPUT', 'FORWARD', 'OUTPUT']
 
       - name: Flush all
         ansible.builtin.iptables:
-          chain: "{{ item }}"
+          chain: '{{ item }}'
           flush: yes
-        with_items: ["INPUT", "FORWARD", "OUTPUT"]
+        with_items: ['INPUT', 'FORWARD', 'OUTPUT']
 
       - name: Flush nat
         ansible.builtin.iptables:
-          chain: "{{ item }}"
+          chain: '{{ item }}'
           flush: yes
           table: nat
-        with_items: [ "INPUT", "OUTPUT", "PREROUTING", "POSTROUTING" ]
+        with_items: [ 'INPUT', 'OUTPUT', 'PREROUTING', 'POSTROUTING' ]
        
       - name: Allow related and established connections
         ansible.builtin.iptables:
@@ -92,12 +92,12 @@
           chain: INPUT
           protocol: tcp
           destination_ports:
-           - "22"
-           - "80"
-           - "443"
-           - "54320"
-           - "54327"
-           - "54328"
+           - '22'
+           - '80'
+           - '443'
+           - '54320'
+           - '54327'
+           - '54328'
           jump: ACCEPT
 
       - name: Drop others input
@@ -112,7 +112,7 @@
 
     - name: Add docker repository
       apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_os_family | lower }} {{ ansible_distribution_release }} stable"
+        repo: 'deb [arch=amd64] https://download.docker.com/linux/{{ ansible_os_family | lower }} {{ ansible_distribution_release }} stable'
         state: present
 
     - name: Ensure required packages are installed
@@ -135,9 +135,9 @@
 
     - name: enable and aviable kernel modules for zram
       community.general.modprobe:
-        name: "zram"
-        persistent: "present"
-        state: "present"
+        name: 'zram'
+        persistent: 'present'
+        state: 'present'
   
     - name: create zram config (/etc/default/zramswap)
       ansible.builtin.copy:
@@ -162,8 +162,8 @@
 
     - name: Copy configuration files to /usr/local/docker/x-ui
       ansible.builtin.template:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
+        src: '{{ item.src }}'
+        dest: '{{ item.dest }}'
         owner: root
         group: root
         mode: '0644'
